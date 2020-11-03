@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block below_footer %}
+after footer
+{% endblock %}
+
+{% block content %}
+
+	{% if orders %}
+		<p>You have orderd total {{orders | length}} products.</p>
+		<p>This is your product order: {{orders | first}}</p>
+	<table>
+		<tr>
+			<th>Order Id</th>
+			<th>User Name</th>
+			<th>Product</th>
+			<th>Price</th>
+		</tr>
+		{% for order in orders %}
+			<tr>
+		<td>{{order.id}}</td>
+		<td>{{order.user | upper}}</td>
+		<td><a href="{% url 'product_detail' order.product.id %}">{{order.product}}</a></td>
+		<td>{{order.product.price}}</td>
+	</tr>
+	{% endfor %}
+</table>
+{% else %}
+<p>You have not ordered any product yet</p>
+{% endif %}
+
+{% endblock %}
+
