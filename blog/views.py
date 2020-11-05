@@ -12,6 +12,34 @@ def index(request, person_id):
 	return HttpResponse('hello we are live now.' + person.name if person else 'nothing')
 
 
+class UpdateProductView(generic.UpdateView):
+	# model = Product
+	# fields = ['name', 'price', 'image']
+	success_url = '/products'
+	template_name = 'add_product.html'
+	form_class = ProductForm
+	model = Product
+
+
+class AddProductCreateView(generic.CreateView):
+	# model = Product
+	# fields = ['name', 'price', 'image']
+	success_url = '/products'
+	template_name = 'add_product.html'
+	form_class = ProductForm
+
+
+class AddProductFormView(generic.FormView):
+	form_class = ProductForm
+	success_url = '/products'
+	template_name = 'add_product.html'
+
+	def form_valid(self, form):
+		"""If the form is valid, redirect to the supplied URL."""
+		form.save()
+		return super().form_valid(form)
+
+
 class AddProductView(View):
 	def get(self, request):
 		form = ProductForm()
@@ -67,6 +95,17 @@ class Login(View):
 def product_detail(request, product_id):
 	product = Product.objects.filter(id=product_id).first()
 	return render(request, 'product_detail.html', {'product': product})
+
+
+class UserDetailView(generic.DetailView):
+    model = User
+    template_name = 'user_detail.html'
+    context_object_name = 'user'
+	
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['products'] = Product.objects.filter(created_by=self.get_object())
+        return context
 
 
 class ProductDetailView(generic.DetailView):

@@ -4,15 +4,15 @@
 {% block content %}
 <form action="" method="post">
     {% csrf_token %}
-    <!-- {{form.as_p}} -->
-    {{form.name.errors}}
+    {{form.as_p}}
+    <!-- {{form.name.errors}}
     <div>Name: 
-        <input type="text" name='name'>
+        <input type="text" name='name' value="{{form.name.value}}">
     </div>
     <div>{{form.price.errors}}</div>
     <div>Price: 
-        <input type="number", name='price'>
-    </div>
+        <input type="number", name='price' value="{{form.price.value}}">
+    </div> -->
     <button type="submit">Submit</button>
 </form>
 {% endblock content %}

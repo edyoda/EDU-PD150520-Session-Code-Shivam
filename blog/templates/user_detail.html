@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+    Profile:
+    <p>Name: {{user.name}}</p>
+
+    <p>Product Added by you</p>
+    <table>
+		<tr>
+			<th>Product Name</th>
+			<th>Product Price</th>
+		</tr>
+	{% for product in products %}
+	<tr>
+		<td>{{product.name}}</td>
+		<td>{{product.price}}</td>
+	</tr>
+    {% endfor %}
+    </table>
+
+    
+{% endblock content %}
+    
