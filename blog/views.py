@@ -1,4 +1,6 @@
 import datetime
+from django.contrib.auth import login, logout
+from django.contrib.auth import models as django_models
 from django.views import generic
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
@@ -78,7 +80,6 @@ def login(request):
 		else:
 			return render(request, 'login.html', {'form': form})
 
-
 class Login(View):
 	def get(self, request):
 		form = LoginForm()
@@ -87,7 +88,17 @@ class Login(View):
 	def post(self, request):
 		form = LoginForm(request.POST)
 		if form.is_valid():
-			return redirect('/products')
+			username = form.cleaned_data['username']
+			password = form.cleaned_data['password']
+			user = django_models.User.objects.filter(username=username).first()
+			if user:
+				if user.check_password(password):
+					login(request, user)
+					return redirect('/product/1')
+				else:
+					return render(request, 'login.html', {'form': form, 'error': 'Invalid Creds'})
+			else:
+				return render(request, 'login.html', {'form': form, 'error': 'User not found'})
 		else:
 			return render(request, 'login.html', {'form': form})
 
@@ -95,6 +106,27 @@ class Login(View):
 def product_detail(request, product_id):
 	product = Product.objects.filter(id=product_id).first()
 	return render(request, 'product_detail.html', {'product': product})
+
+
+class UserProfileView(generic.DetailView):
+	model = User
+	template_name = 'user_detail.html'
+	context_object_name = 'user'
+	def get_object(self):
+		if self.request.user.is_authenticated:
+			return self.request.user
+		else:
+			return None
+			
+	def get(self, request):
+		if not self.request.user.is_authenticated:
+			return redirect('/login')
+		return super().get(self, request)
+
+	def get_context_data(self, **kwargs):
+		context = super().get_context_data(**kwargs)
+		# context['products'] = Product.objects.filter(created_by=self.get_object())
+		return context
 
 
 class UserDetailView(generic.DetailView):
