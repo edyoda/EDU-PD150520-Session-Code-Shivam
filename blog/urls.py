@@ -8,6 +8,11 @@ from blog.views import (
     UpdateProductView, UserDetailView, UserProfileView
 )
 
+from blog.views import ProductViewSet
+from rest_framework.routers import DefaultRouter
+router = DefaultRouter()
+router.register(r'api-products', ProductViewSet, basename='product')
+
 urlpatterns = [
     # path('login', login),
     path('base', generic.TemplateView.as_view(template_name='base.html')),
@@ -24,4 +29,5 @@ urlpatterns = [
     path('orders/<int:user_id>', orders),
     path('user/<int:pk>', UserDetailView.as_view()),
     path('user-profile', UserProfileView.as_view())
-]
+] + router.urls
+
