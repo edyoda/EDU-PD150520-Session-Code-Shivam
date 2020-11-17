@@ -170,11 +170,3 @@ def products(request):
 def orders(request, user_id):
 	orders = Order.objects.filter(user_id=user_id)
 	return render(request, 'orders.html', {'orders': orders})
-
-from rest_framework.viewsets import ModelViewSet
-from blog.serializers import ProductSerializer
-
-class ProductViewSet(ModelViewSet):
-
-	queryset = Product.objects.all()
-	serializer_class = ProductSerializer

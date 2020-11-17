@@ -8,7 +8,7 @@ from blog.views import (
     UpdateProductView, UserDetailView, UserProfileView
 )
 
-from blog.views import ProductViewSet
+from blog.api.views import ProductViewSet
 from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
 router.register(r'api-products', ProductViewSet, basename='product')
