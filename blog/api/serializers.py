@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from blog.models import Product, Order
 from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -12,7 +13,16 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('first_name', 'last_name', 'email', 'username', 'full_name')
 
     def get_full_name(self, instance):
-        return {1:2}
+        return instance.first_name  + ' ' + instance.last_name
+
+
+class TokenSerializer(serializers.ModelSerializer):
+
+    user = UserSerializer()
+
+    class Meta:
+        model = Token
+        fields = ('user', 'key')
 
 
 class LoginSerializer(serializers.Serializer):
@@ -20,16 +30,9 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField()
 
     class Meta:
-        fields = ('name', 'password')
-
-    def validate_username(self, data):
-        print(data, 'under validate_username')
-        if len(data) < 3:
-            raise serializers.ValidationError('Length should be at least 3.')
-        return data
+        fields = ('username', 'password')
 
     def validate(self, data):
-        print(data, 'under validate')
         user = User.objects.filter(username=data['username']).first()
         if not user:
             raise serializers.ValidationError('user not found')
@@ -39,7 +42,33 @@ class LoginSerializer(serializers.Serializer):
 
     def login(self, data):
         user = User.objects.filter(username=data['username']).first()
-        return UserSerializer(user).data        
+        token, created = Token.objects.get_or_create(user=user)
+        return TokenSerializer(token).data        
+
+
+class SignUpSerializer(serializers.ModelSerializer):
+
+    password = serializers.CharField(max_length=25, write_only=True)
+    confirm_password = serializers.CharField(max_length=25, write_only=True)
+
+    class Meta:
+        model = User
+        fields = ('username', 'first_name', 'last_name', 'password', 'confirm_password')
+
+    def validate(self, data):
+        if data['password'] != data['confirm_password']:
+            raise serializers.ValidationError('Password does not match')
+        return data
+
+    def save(self, data):
+        password = data.pop('password')
+        data.pop('confirm_password')
+        
+        user = User.objects.create(**data)
+        user.set_password(password)
+        user.save()
+        return user
+
 
 class ProductSerializerWithId(serializers.ModelSerializer):
 

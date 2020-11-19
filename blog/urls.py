@@ -8,10 +8,11 @@ from blog.views import (
     UpdateProductView, UserDetailView, UserProfileView
 )
 
-from blog.api.views import ProductViewSet, LoginView
+from blog.api.views import ProductViewSet, LoginView, SignUpView, UserProfileApiView
 from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
 router.register(r'api-products', ProductViewSet, basename='product')
+
 
 urlpatterns = [
     # path('login', login),
@@ -32,6 +33,8 @@ urlpatterns = [
 
 
     # APIS
-    path('api-login', LoginView.as_view())
+    path('api-login/', LoginView.as_view()),
+    path('api-signup/', SignUpView.as_view()),
+    path('api-user-profile/', UserProfileApiView.as_view()),
 ] + router.urls
 

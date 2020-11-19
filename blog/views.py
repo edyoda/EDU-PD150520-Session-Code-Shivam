@@ -5,8 +5,9 @@ from django.views import generic
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.views import View
+from django.contrib.auth.models import User
 # Create your views here.
-from blog.models import User, Product, Order
+from blog.models import Product, Order
 from blog.forms import ProductForm, LoginForm
 
 def index(request, person_id):
