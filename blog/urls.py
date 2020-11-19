@@ -8,7 +8,7 @@ from blog.views import (
     UpdateProductView, UserDetailView, UserProfileView
 )
 
-from blog.api.views import ProductViewSet
+from blog.api.views import ProductViewSet, LoginView
 from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
 router.register(r'api-products', ProductViewSet, basename='product')
@@ -28,6 +28,10 @@ urlpatterns = [
     path('add_product_duplicate', generic.RedirectView.as_view(url='/login')),
     path('orders/<int:user_id>', orders),
     path('user/<int:pk>', UserDetailView.as_view()),
-    path('user-profile', UserProfileView.as_view())
+    path('user-profile', UserProfileView.as_view()),
+
+
+    # APIS
+    path('api-login', LoginView.as_view())
 ] + router.urls
 
