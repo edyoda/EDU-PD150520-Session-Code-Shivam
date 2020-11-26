@@ -6,7 +6,7 @@ class ProductForm(forms.ModelForm):
 
     class Meta:
         model = Product
-        exclude = ('id',)
+        exclude = ('id', 'created_by')
 
 
 class LoginForm(forms.Form):

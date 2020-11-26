@@ -5,7 +5,7 @@ from django.views import generic
 from blog.views import (
     index, product_detail, products, orders, add_product, Login, AddProductView,
     ProductListView, ProductDetailView, AddProductFormView, AddProductCreateView,
-    UpdateProductView, UserDetailView, UserProfileView
+    UpdateProductView, UserDetailView, UserProfileView, DeleteProductView
 )
 
 from blog.api.views import ProductViewSet, LoginView, SignUpView, UserProfileApiView
@@ -26,6 +26,7 @@ urlpatterns = [
     # path('add_product', AddProductFormView.as_view()),
     path('add_product', AddProductCreateView.as_view()),
     path('update_product/<int:pk>', UpdateProductView.as_view()),
+    path('delete_product/<int:pk>', DeleteProductView.as_view(), name='delete_product'),
     path('add_product_duplicate', generic.RedirectView.as_view(url='/login')),
     path('orders/<int:user_id>', orders),
     path('user/<int:pk>', UserDetailView.as_view()),

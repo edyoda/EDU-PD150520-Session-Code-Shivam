@@ -3,6 +3,10 @@ from django.contrib.auth import models as django_models
 from django.contrib.auth.models import User
 
 
+# class UserProfile(models.Model)
+# 	user = models.OneToOneField(User, on_delete=models.CASCADE)
+# 	order_count = models.PositiveIntegerField(default=0)
+
 # class User(models.Model):
 # 	# id = models.IntegerField(primary_key=True)
 # 	first_name = models.CharField(max_length=50)
@@ -15,9 +19,26 @@ from django.contrib.auth.models import User
 # 	def full_name(self):
 		# return self.first_name + ' ' + self.last_name
 
+class UserProfile(models.Model):
+	user = models.OneToOneField(User, on_delete=models.CASCADE)
+	is_manager = models.BooleanField(default=False)
+
+	def __str__(self):
+		return str(self.user) + '->' + str(self.is_manager)
+
+
+class Category(models.Model):
+	name = models.CharField(max_length=50)
+	product_count = models.PositiveIntegerField()
+
+	def __str__(self):
+		return self.name + '->' + str(self.product_count)
+
+
 class Product(models.Model):
 	id = models.IntegerField(primary_key=True)
 	name = models.CharField(max_length=50)
+	category = models.ForeignKey('Category', on_delete=models.CASCADE, null=True, blank=True)
 	price = models.IntegerField()
 	image = models.ImageField(blank=True, null=True)
 	created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
@@ -46,8 +67,46 @@ class Order(models.Model):
 # Product.objects.all().order_by('-price')
 
 
+from django.db.models.signals import post_save, post_delete, pre_save
+from django.dispatch import receiver
+
+@receiver(pre_save, sender=Product, dispatch_uid="pre_save_product")
+def pre_save_product(sender, instance, **kwargs):
+	if not kwargs.get('created'):
+		old_object = Product.objects.get(id=instance.id)
+		print('pre-save start')
+		print(old_object.name, old_object.price, 'this is old data')
+		print(instance.name, instance.price, 'this is new data')
+		print('pre-save end')
+
+@receiver(post_save, sender=Product, dispatch_uid="update_product_count")
+def update_product_count(sender, instance, **kwargs):
+	if not kwargs.get('created'):
+		old_object = Product.objects.get(id=instance.id)
+		print('post-save start')
+		print(old_object.name, old_object.price, 'this is old data')
+		print(instance.name, instance.price, 'this is new data')
+		print('post-save end')
+	if kwargs.get('created') and instance.category:
+		instance.category.product_count += 1
+		instance.category.save()
+
+@receiver(post_delete, sender=Product, dispatch_uid="decrement_product_count")
+def decrement_product_count(sender, instance, **kwargs):
+	print(instance, kwargs)
+	if instance.category:
+		instance.category.product_count -= 1
+		instance.category.save()
 
 
+## Signal flow
+# pre_save
+# actual processing
+# post_save
 
+# class BlogLike(models.Model):
+# 	user
+# 	blog
+# BlogLike.objects.filter(blog=blog).count()
 
-
+# like_count = integer_field

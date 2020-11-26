@@ -3,9 +3,9 @@
 
 {% block content %}
 
-	Profile:
-    <p>Name: {{user.full_name}}</p>
+    <p>Name: {{request.user.get_full_name}}</p>
 
+	{% if products %}
     <p>Product Added by you</p>
     <table>
 		<tr>
@@ -18,7 +18,10 @@
 		<td>{{product.price}}</td>
 	</tr>
     {% endfor %}
-    </table>
+	</table>
+	{% else %} 
+		<p>You have not added any product</p>
+	{% endif %}
 
     
 {% endblock content %}

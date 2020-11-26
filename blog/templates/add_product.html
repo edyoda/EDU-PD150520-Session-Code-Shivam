@@ -4,6 +4,14 @@
 {% block content %}
 <form action="" method="post">
     {% csrf_token %}
+
+    {% if object %}
+        <a href="{% url 'delete_product' object.id %}">Delete</a>
+    {% endif %}
+
+    {% if object.created_by %}
+        Product owner -> {{object.created_by}}
+    {% endif %}
     {{form.as_p}}
     <!-- {{form.name.errors}}
     <div>Name: 

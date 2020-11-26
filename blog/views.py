@@ -6,6 +6,8 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.views import View
 from django.contrib.auth.models import User
+from django.contrib.auth.mixins import LoginRequiredMixin, AccessMixin
+
 # Create your views here.
 from blog.models import Product, Order
 from blog.forms import ProductForm, LoginForm
@@ -15,21 +17,65 @@ def index(request, person_id):
 	return HttpResponse('hello we are live now.' + person.name if person else 'nothing')
 
 
-class UpdateProductView(generic.UpdateView):
+class ManagerRequiredMixin(AccessMixin):
+	def dispatch(self, request, *args, **kwargs):
+		if not request.user.is_authenticated or not hasattr(self.request.user, 'userprofile') or not self.request.user.userprofile.is_manager:
+			return self.handle_no_permission()
+		return super().dispatch(request, *args, **kwargs)
+
+
+class DeleteProductView(ManagerRequiredMixin, generic.DeleteView):
+	"""
+	Only manager can delete the product
+	"""
+	# model = Product
+	# fields = ['name', 'price', 'image']
+	success_url = '/products'
+	# template_name = 'add_product.html'
+	# form_class = ProductForm
+	model = Product
+	login_url = '/login'
+	
+	def get(self, request, *args, **kwargs):
+		return self.delete(request, *args, **kwargs)
+
+class UpdateProductView(LoginRequiredMixin, generic.UpdateView):
 	# model = Product
 	# fields = ['name', 'price', 'image']
 	success_url = '/products'
 	template_name = 'add_product.html'
 	form_class = ProductForm
 	model = Product
+	login_url = '/login'
+	
+	def get_queryset(self):
+		if hasattr(self.request.user, 'userprofile') and self.request.user.userprofile.is_manager:
+			return super().get_queryset()
+		return super().get_queryset().filter(created_by=self.request.user)
+	
 
-
-class AddProductCreateView(generic.CreateView):
+class AddProductCreateView(LoginRequiredMixin, generic.CreateView):
+	login_url = '/login'
 	# model = Product
 	# fields = ['name', 'price', 'image']
 	success_url = '/products'
 	template_name = 'add_product.html'
 	form_class = ProductForm
+	# def form_valid(self, form):
+	# 	"""If the form is valid, save the associated model."""
+	# 	print('212121')
+	# 	self.object = form.save()
+	# 	# print('212121')
+	# 	if self.request.user.is_authenticated:
+	# 		self.object.created_by = self.request.user
+	# 		self.object.save()
+	# 	return super().form_valid(form)
+	# 
+	def get_success_url(self):
+		if self.request.user.is_authenticated:
+			self.object.created_by = self.request.user
+			self.object.save()
+		return super().get_success_url()
 
 
 class AddProductFormView(generic.FormView):
@@ -70,7 +116,7 @@ def add_product(request):
 			return render(request, 'add_product.html', {'form': form})
 
 
-def login(request):
+def login_function_base_view(request):
 	if request.method == 'GET':
 		form = LoginForm()
 		return render(request, 'login.html', {'form': form})
@@ -95,7 +141,7 @@ class Login(View):
 			if user:
 				if user.check_password(password):
 					login(request, user)
-					return redirect('/product/1')
+					return redirect('/user-profile')
 				else:
 					return render(request, 'login.html', {'form': form, 'error': 'Invalid Creds'})
 			else:
@@ -109,24 +155,23 @@ def product_detail(request, product_id):
 	return render(request, 'product_detail.html', {'product': product})
 
 
-class UserProfileView(generic.DetailView):
+class UserProfileView(LoginRequiredMixin, generic.DetailView):
+	login_url = '/login'
 	model = User
 	template_name = 'user_detail.html'
 	context_object_name = 'user'
+
 	def get_object(self):
-		if self.request.user.is_authenticated:
-			return self.request.user
-		else:
-			return None
+		return self.request.user
 			
-	def get(self, request):
-		if not self.request.user.is_authenticated:
-			return redirect('/login')
-		return super().get(self, request)
+	# def get(self, request):
+	# 	if not self.request.user.is_authenticated:
+	# 		return redirect('/login')
+	# 	return super().get(self, request)
 
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)
-		# context['products'] = Product.objects.filter(created_by=self.get_object())
+		context['products'] = Product.objects.filter(created_by=self.get_object())
 		return context
 
 
@@ -171,3 +216,35 @@ def products(request):
 def orders(request, user_id):
 	orders = Order.objects.filter(user_id=user_id)
 	return render(request, 'orders.html', {'orders': orders})
+
+
+# Functionalities
+# Django functionality.
+# 1. Add new blog (with and without logged in user)
+# 2. if user is logged-in, it will  not show user dropdown during blog add and current logged in user should be linked with created_by
+# 3. update blog and delete blog functionality.
+# 4. user will be able to update only own add blog, so that no one can update blog added by someone else.
+# 5. Delete blog functionality
+# 6. Signup feature
+# 7. Login and logout feature.
+# 8. Blog list functionality.
+# 9. show all the details of blog on detail page like title, description, date, image and added by
+# 10. show user profile page and show all blog added by that user on that page.
+# 11. update profile page.
+# 12. show count in user profile of total number of blog created by that user. (hint-> use count query)
+
+# DRF functionalty:
+# 1. Login and signup
+# 2. logout
+# 3. Blog list, detail, update and delete api
+# 4. user profile api which will have all blog created by that user.
+# 5. user can update only self created blog.
+# 6. show count in user profile of total number of blog created by that user.
+# 7. create some api using viewset and view both.
+# 8. in blog serilizer, send detail of created_by user using nested serializer.
+# 10. first_name and last_name should be required in signup API.
+
+
+
+
+
