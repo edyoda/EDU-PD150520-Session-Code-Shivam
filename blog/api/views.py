@@ -1,5 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework import generics, mixins, views
@@ -14,6 +15,8 @@ from blog.models import Product
 class ProductViewSet(ModelViewSet):
 
 	queryset = Product.objects.all()
+	pagination_class = PageNumberPagination
+
 	# serializer_class = ProductSerializer
 
 	def get_serializer_class(self):

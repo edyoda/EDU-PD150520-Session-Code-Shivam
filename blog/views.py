@@ -1,7 +1,7 @@
 import datetime
 from django.contrib.auth import login, logout
 from django.contrib.auth import models as django_models
-from django.views import generic
+from django.views import generic, View
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.views import View
@@ -10,11 +10,34 @@ from django.contrib.auth.mixins import LoginRequiredMixin, AccessMixin
 
 # Create your views here.
 from blog.models import Product, Order
-from blog.forms import ProductForm, LoginForm
+from blog.forms import ProductForm, LoginForm, PasswordResetForm
+from django.contrib.auth import update_session_auth_hash
+
 
 def index(request, person_id):
 	person = User.objects.filter(id=person_id).first()
 	return HttpResponse('hello we are live now.' + person.name if person else 'nothing')
+
+class PasswordResetView(LoginRequiredMixin, generic.FormView):
+	form_class = PasswordResetForm
+	success_url = '/products'
+	template_name = 'password_reset.html'
+	login_url = '/login'
+
+	def form_valid(self, form):
+		"""If the form is valid, redirect to the supplied URL."""
+		self.request.user.set_password(form.cleaned_data['new_password'])
+		self.request.user.save()
+		update_session_auth_hash(self.request, self.request.user)
+		return super().form_valid(form)
+		
+	def post(self, request, *args, **kwargs):
+		form = self.get_form()
+		form.user =  self.request.user
+		if form.is_valid():
+			return self.form_valid(form)
+		else:
+			return self.form_invalid(form)
 
 
 class ManagerRequiredMixin(AccessMixin):
@@ -199,6 +222,7 @@ class ProductDetailView(generic.DetailView):
 
 class ProductListView(generic.ListView):
 	# model = Product
+	paginate_by = 25
 	template_name = 'products.html'
 	context_object_name = 'products'
 	queryset = Product.objects.filter()
