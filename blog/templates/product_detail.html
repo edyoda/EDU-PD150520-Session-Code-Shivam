@@ -3,4 +3,20 @@
 {% block content %}
 	<b>{{my_product.name}},{{my_product.price}}</b>
 	<img src="/media/{{my_product.image}}" alt="">
+	<button type="submit" onclick="likeproduct({{my_product.id}})" id="like-button">Like</button>
+
+	<script>
+		function likeproduct(product_id) {
+		  var xhttp = new XMLHttpRequest();
+		  xhttp.onreadystatechange = function() {
+			  console.log(this.responseText)
+			  console.log(this.status, typeof this.status)
+			if (this.status == 200) {
+			  document.getElementById("like-button").innerHTML = "Liked";
+			}
+		  };
+		  xhttp.open("POST", "/like-product/" + product_id, true);
+		  xhttp.send();
+		}
+	</script>
 {% endblock %}

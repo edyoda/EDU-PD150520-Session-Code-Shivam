@@ -5,7 +5,8 @@ from django.views import generic
 from blog.views import (
     index, product_detail, products, orders, add_product, Login, AddProductView,
     ProductListView, ProductDetailView, AddProductFormView, AddProductCreateView,
-    UpdateProductView, UserDetailView, UserProfileView, DeleteProductView, PasswordResetView
+    UpdateProductView, UserDetailView, UserProfileView, DeleteProductView, PasswordResetView,
+    LikeProduct
 )
 
 from blog.api.views import ProductViewSet, LoginView, SignUpView, UserProfileApiView
@@ -21,6 +22,7 @@ urlpatterns = [
     path('password-reset/', PasswordResetView.as_view()),
     path('index/<int:person_id>', index),
     path('product/<int:pk>', ProductDetailView.as_view(), name='product_detail'),
+    path('like-product/<int:pk>', LikeProduct.as_view(), name='like-product'),
     path('products', ProductListView.as_view()),
     # path('add_product', add_product),
     # path('add_product', AddProductView.as_view()),

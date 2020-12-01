@@ -2,21 +2,39 @@ import datetime
 from django.contrib.auth import login, logout
 from django.contrib.auth import models as django_models
 from django.views import generic, View
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.views import View
 from django.contrib.auth.models import User
 from django.contrib.auth.mixins import LoginRequiredMixin, AccessMixin
 
 # Create your views here.
-from blog.models import Product, Order
+from blog.models import Product, Order, ProductLike
 from blog.forms import ProductForm, LoginForm, PasswordResetForm
 from django.contrib.auth import update_session_auth_hash
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 
 def index(request, person_id):
 	person = User.objects.filter(id=person_id).first()
 	return HttpResponse('hello we are live now.' + person.name if person else 'nothing')
+
+
+class LikeProduct(LoginRequiredMixin, View):
+	
+	@method_decorator(csrf_exempt)
+	def dispatch(self, *args, **kwargs):
+		return super().dispatch(*args, **kwargs)
+		
+	def post(self, request, *args, **kwargs):
+		product_id = kwargs.get('pk')
+		product = get_object_or_404(Product, id=product_id)
+		ProductLike.objects.get_or_create(
+			product=product, user=self.request.user
+		)
+		return HttpResponse('success')
+
 
 class PasswordResetView(LoginRequiredMixin, generic.FormView):
 	form_class = PasswordResetForm

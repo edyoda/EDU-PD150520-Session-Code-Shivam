@@ -41,10 +41,19 @@ class Product(models.Model):
 	category = models.ForeignKey('Category', on_delete=models.CASCADE, null=True, blank=True)
 	price = models.IntegerField()
 	image = models.ImageField(blank=True, null=True)
+	like_count = models.IntegerField(default=0)
 	created_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
 
 	def __str__(self):
 		return self.name
+
+class ProductLike(models.Model):
+	user = models.ForeignKey(User, on_delete=models.CASCADE)
+	product = models.ForeignKey(Product, on_delete=models.CASCADE)
+
+	def __str__(self):
+		return self.product.name + ' ' + self.user.first_name
+
 
 class Order(models.Model):
 	id = models.IntegerField(primary_key=True)
@@ -90,6 +99,18 @@ def update_product_count(sender, instance, **kwargs):
 	if kwargs.get('created') and instance.category:
 		instance.category.product_count += 1
 		instance.category.save()
+
+
+@receiver(post_save, sender=ProductLike, dispatch_uid="post_save_product_like")
+def post_save_product_like(sender, instance, **kwargs):
+	if kwargs.get('created'):
+		instance.product.like_count += 1
+		instance.product.save()
+
+@receiver(post_delete, sender=ProductLike, dispatch_uid="post_delete_product_like")
+def post_delete_product_like(sender, instance, **kwargs):
+	instance.product.like_count -= 1
+	instance.product.save()
 
 @receiver(post_delete, sender=Product, dispatch_uid="decrement_product_count")
 def decrement_product_count(sender, instance, **kwargs):
